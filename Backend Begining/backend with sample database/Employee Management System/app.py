@@ -65,7 +65,10 @@ def regdb():
 
 @app.route("/ems_dashboard")
 def home():
-    return render_template("index.html")
+    cursor.execute("""SELECT * FROM employees""")
+    rows = cursor.fetchall()
+    
+    return render_template("index.html", result=rows)
 
 
 @app.route("/addemp")
@@ -84,10 +87,31 @@ def addempdb():
         #insert into employees table
         cursor.execute("""INSERT INTO employees(emp_id, emp_name, emp_designation) VALUES(?,?,?)""",(empid,empname,empdes))
         conn.commit()
-        return "Empoyee Added successfully!!"
+        return redirect(url_for("home"))
 
+
+@app.route("/update/<empid>")
+def update(empid):
+    res = empid
+    return render_template("update.html", result=res)
+
+@app.route("/update/updatedb/<empid>", methods=['GET','POST'])
+def updatedb(empid):
+    if request.method == 'POST':
+        empid = empid
+        empname = request.form['empnamebox']
+        empdes = request.form['empdesbox']
         
+        cursor.execute("""UPDATE employees SET emp_name=?, emp_designation=? WHERE emp_id=?""",(empname,empdes,empid))
+        conn.commit()
+        return redirect(url_for("home"))
 
+
+@app.route("/delete/<id>")
+def delete(id):
+    cursor.execute("""DELETE FROM employees WHERE emp_id=?""",(id,))
+    conn.commit()
+    return redirect(url_for("home"))
 
 if __name__=='__main__':
     app.run(debug=True)
